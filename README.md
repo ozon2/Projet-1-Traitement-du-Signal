@@ -1,1 +1,3 @@
-# Projet_Traitement_Du_Signal
+# Projet 1 Traitement Du Signal
+Axel Grunig
+Tom Pillot
