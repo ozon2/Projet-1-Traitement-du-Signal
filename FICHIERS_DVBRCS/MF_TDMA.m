@@ -132,8 +132,8 @@ ylabel("Réponse en fréquence");
 % Verification du filtre
 Sxnormalise = ((1/max(abs(Sx))) * abs(Sx));
 figure;
-semilogy (linspace(-Fe/2, Fe/2, length(TF_filtre_bas)), fftshift(abs(TF_filtre_bas))); hold;
-semilogy (f, fftshift(abs(Sxnormalise)));
+plot (linspace(-Fe/2, Fe/2, length(TF_filtre_bas)), fftshift(abs(TF_filtre_bas))); hold;
+plot (f, fftshift(abs(Sxnormalise)));
 title("Verification du filtre passe-bas");
 xlabel("Frequence (Hz)");
 ylabel("Amplitude")
@@ -162,24 +162,105 @@ ylabel("Réponse en fréquence");
 
 % Verification du filtre
 figure;
-semilogy (linspace(-Fe/2, Fe/2, length(TF_filtre_haut)), fftshift(abs(TF_filtre_haut))); hold;
-semilogy (f, fftshift(abs(Sxnormalise)));
+plot (linspace(-Fe/2, Fe/2, length(TF_filtre_haut)), fftshift(abs(TF_filtre_haut))); hold;
+plot (f, fftshift(abs(Sxnormalise)));
 title("Verification du filtre passe-haut");
 xlabel("Frequence (Hz)");
-ylabel("Amplitude")
-legend("Filtre passe-bas","DSP Normalisée")
+ylabel("Amplitude");
+legend("Filtre passe-bas","DSP Normalisée");
+
+%% 4.1.3 Filtrage
+
+% Calcul des signaux filtrés
+x1_filtre = conv(x,filtre_bas,'same');
+x2_filtre = conv(x,filtre_haut,'same');
+
+% Tracé des signaux filtrés
+figure;
+subplot(2,1,1); plot (t, x1_filtre);
+title("Signal utilisateur 1 filtré")
+xlabel("Temps (s)");
+ylabel("Amplitude");
+subplot(2,1,2); plot (t, x2_filtre);
+title("Signal utilisateur 2 filtré")
+xlabel("Temps (s)");
+ylabel("Amplitude");
 
 %% 4.2 Retour en bande de base
 
+% Calcul des signaux avec retour en bande de base
+x1_base = x1_filtre;
+filtre_bas2 = 2*(f2/Fe)*sinc(2*k*(f2/Fe));
+x2_base = conv(x2_filtre.*cos(2*pi*f2*t),filtre_bas2,'same');
+
+% Tracé des signaux avec retour en bande de base
+figure;
+subplot(2,1,1); plot (t, x1_base);
+title("Signal utilisateur 1 avec retour en bande de base")
+xlabel("Temps (s)");
+ylabel("Amplitude");
+subplot(2,1,2); plot (t, x2_base);
+title("Signal utilisateur 2 avec retour en bande de base")
+xlabel("Temps (s)");
+ylabel("Amplitude");
+
+%% 4.3 Détection du slot utile
+
+% Détection du slot utile pour l'utilisateur 1
+N = length(m1);
+E_max = 0;
+
+for i = 1:5
+   X = x1_base(N*(i-1)+1:N*i);
+   % Calcul de l'énergie dans le slot i
+   DSP = abs(X).^2;
+   F = griddedInterpolant([N*(i-1)+1:N*i],DSP);
+   fun = @(t) F(t);
+   E = integral(fun, N*(i-1)+1, N*i);
+   % Calcul du maximum d'énergie
+   if E > E_max
+      i_max = i;
+      E_max = E;
+   end
+end
+
+m1_retrouve = x1_base(N*(i_max-1)+1:N*i_max);
 
 
+% Détection du slot utile pour l'utilisateur 1
+N = length(m1);
+E_max = 0;
 
+for i = 1:5
+   X = x2_base(N*(i-1)+1:N*i);
+   % Calcul de l'énergie dans le slot i
+   DSP = abs(X).^2;
+   F = griddedInterpolant([N*(i-1)+1:N*i],DSP);
+   fun = @(t) F(t);
+   E = integral(fun, N*(i-1)+1, N*i);
+   % Calcul du maximum d'énergie
+   if E > E_max
+      i_max = i;
+      E_max = E;
+   end
+end
 
+m2_retrouve = x2_base(N*(i_max-1)+1:N*i_max);
 
+%% 4.4 Démodulation bande de base
 
+% Démodulation bande de base pour l'utilisateur 1
+SignalFiltre1 = conv(m1_retrouve,ones(1,Ns),'same');
+SignalEchantillonne1 = SignalFiltre1(1 :Ns :end);
+BitsRecuperes1 = (sign(SignalEchantillonne1)+1)/2;
 
+% Démodulation bande de base pour l'utilisateur 1
+SignalFiltre2 = conv(m2_retrouve,ones(1,Ns),'same');
+SignalEchantillonne2 = SignalFiltre2(1 :Ns :end);
+BitsRecuperes2 = (sign(SignalEchantillonne2)+1)/2;
 
-
-
-
-
+% Conversion des bits récupérés en chaine de caractère
+message1 = bin2str(BitsRecuperes1);
+disp(message1);
+message2 = bin2str(BitsRecuperes2);
+disp(message2);
