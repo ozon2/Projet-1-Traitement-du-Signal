@@ -214,7 +214,7 @@ for i = 1:5
    X = x1_base(N*(i-1)+1:N*i);
    % Calcul de l'énergie dans le slot i
    DSP = abs(X).^2;
-   F = griddedInterpolant([N*(i-1)+1:N*i],DSP);
+   F = griddedInterpolant(N*(i-1)+1:N*i,DSP);
    fun = @(t) F(t);
    E = integral(fun, N*(i-1)+1, N*i);
    % Calcul du maximum d'énergie
@@ -235,7 +235,7 @@ for i = 1:5
    X = x2_base(N*(i-1)+1:N*i);
    % Calcul de l'énergie dans le slot i
    DSP = abs(X).^2;
-   F = griddedInterpolant([N*(i-1)+1:N*i],DSP);
+   F = griddedInterpolant(N*(i-1)+1:N*i,DSP);
    fun = @(t) F(t);
    E = integral(fun, N*(i-1)+1, N*i);
    % Calcul du maximum d'énergie
