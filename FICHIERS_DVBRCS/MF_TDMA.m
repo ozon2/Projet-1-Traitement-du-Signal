@@ -91,6 +91,18 @@ title("Signal Complet");
 xlabel("Temps (s)");
 ylabel("Amplitude");
 
+% Calcul de la transformée de fourier de x
+X =fft(x);
+
+% Calcul de la DSP de x
+Sx = abs(X).^2;
+
+% Tracé de la DSP de x
+f = linspace(-Fe/2, Fe/2, length(X));
+figure; semilogy(f, fftshift(X));
+title("DSP de x");
+xlabel("Fréquence (f)")
+ylabel("Amplitude Sx(f)");
 
 
 
